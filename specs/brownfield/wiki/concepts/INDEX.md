@@ -12,6 +12,7 @@ Hash-cached, deterministic cluster summaries. Regenerated when member file hashe
 - [test/e2e](test__e2e.md)
 - [symphony_clone/src](symphony_clone__src.md)
 - [dsl-packs/private-equity](dsl-packs__private-equity.md)
+- [tools/partition-report.js](tools__partition-report.js.md)
 - [test/fixtures](test__fixtures.md)
 - [symphony_clone/test](symphony_clone__test.md)
 - [test/evals](test__evals.md)
@@ -27,4 +28,3 @@ Hash-cached, deterministic cluster summaries. Regenerated when member file hashe
 - [test/approve-fixtures.test.js](test__approve-fixtures.test.js.md)
 - [test/approved-fixtures-gate.test.js](test__approved-fixtures-gate.test.js.md)
 - [test/archive-state.test.js](test__archive-state.test.js.md)
-- [test/ask-codebase-readiness-digest.test.js](test__ask-codebase-readiness-digest.test.js.md)

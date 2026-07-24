@@ -1,6 +1,6 @@
-# `tools/` — 7 module(s)
+# `tools/` — 9 module(s)
 
-7 module(s).
+9 module(s).
 
 ## Dependencies
 
@@ -8,6 +8,8 @@
 flowchart LR
   n_js_tools_check_partition_js["check-partition.js"]
   n_js_tools_check_partition_test_js["check-partition.test.js"]
+  n_js_tools_overlap_candidates_js["overlap-candidates.js"]
+  n_js_tools_overlap_candidates_test_js["overlap-candidates.test.js"]
   n_js_tools_pack_install_smoke_test_js["pack-install-smoke.test.js"]
   n_js_tools_pack_install_js["pack-install.js"]
   n_js_tools_pack_install_test_js["pack-install.test.js"]
@@ -18,6 +20,7 @@ flowchart LR
   n_js_tools_pack_install_smoke_test_js -->|imports| n_js_tools_pack_install_js
   n_js_tools_pack_install_test_js -->|imports| n_js_tools_pack_install_js
   n_js_tools_partition_report_test_js -->|imports| n_js_tools_partition_report_js
+  n_js_tools_overlap_candidates_test_js -->|imports| n_js_tools_overlap_candidates_js
 ```
 
 ## `js:tools/check-partition.js`
@@ -51,6 +54,39 @@ flowchart LR
 
 ### Symbols
   _(no extracted symbols)_
+
+## `js:tools/overlap-candidates.js`
+
+- fan-in: 1, fan-out: 2
+
+### Symbols
+  - `round2` (function) → js:tools/overlap-candidates.js:55 — `round2 = (n) => Math.round(n * 100) / 100`
+  - `fileOf` (function) → js:tools/overlap-candidates.js:56 — `fileOf = (w) => String(w || '').split('#')[0]`
+  - `tokens` (function) → js:tools/overlap-candidates.js:58 — `function tokens(text)`
+  - `jaccard` (function) → js:tools/overlap-candidates.js:63 — `function jaccard(a, b)`
+  - `prepare` (function) → js:tools/overlap-candidates.js:71 — `function prepare(control)`
+  - `pairSignals` (function) → js:tools/overlap-candidates.js:84 — `function pairSignals(a, b)`
+  - `makePair` (function) → js:tools/overlap-candidates.js:93 — `function makePair(a, b, signals)`
+  - `clusterOverlaps` (function) → js:tools/overlap-candidates.js:106 — `function clusterOverlaps(controls)`
+  - `loadControls` (function) → js:tools/overlap-candidates.js:130 — `function loadControls(manifest)`
+  - `buildMarker` (function) → js:tools/overlap-candidates.js:143 — `function buildMarker(controls, now)`
+  - `auditedIds` (function) → js:tools/overlap-candidates.js:147 — `function auditedIds(marker)`
+  - `staleControls` (function) → js:tools/overlap-candidates.js:154 — `function staleControls(controls, marker)`
+  - `readMarker` (function) → js:tools/overlap-candidates.js:159 — `function readMarker()`
+  - `printStale` (function) → js:tools/overlap-candidates.js:163 — `function printStale(stale, marker)`
+  - `printResidual` (function) → js:tools/overlap-candidates.js:172 — `function printResidual(residual)`
+  - `printReport` (function) → js:tools/overlap-candidates.js:179 — `function printReport({ pairs, residual, units })`
+  - `runCluster` (function) → js:tools/overlap-candidates.js:190 — `function runCluster(controls, asJson)`
+  - `runRecord` (function) → js:tools/overlap-candidates.js:197 — `function runRecord(controls)`
+  - `runStale` (function) → js:tools/overlap-candidates.js:205 — `function runStale(controls)`
+  - `main` (function) → js:tools/overlap-candidates.js:211 — `function main()`
+
+## `js:tools/overlap-candidates.test.js`
+
+- fan-in: 0, fan-out: 5
+
+### Symbols
+  - `prep` (function) → js:tools/overlap-candidates.test.js:16 — `prep = (c) => (`
 
 ## `js:tools/pack-install-smoke.test.js`
 

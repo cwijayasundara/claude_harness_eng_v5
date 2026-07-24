@@ -3,7 +3,7 @@
 > Deterministic, always-current map rendered from `code-graph.json`. No LLM — re-rendered on graph change.
 
 - Producer: `vendored-ast`  ·  Language: `mixed`
-- Modules: 439  ·  Edges: 1999  ·  Clusters: 50
+- Modules: 443  ·  Edges: 2015  ·  Clusters: 50
 
 ## Hubs (most-depended-on)
 
@@ -83,13 +83,13 @@ _(Hash-cached concept pages from `nav-concepts.js`.)_
 
 ## Pages
 
-- [`test/` — 292 module(s)](pages/01-test.md) — 292 module(s)
+- [`test/` — 294 module(s)](pages/01-test.md) — 294 module(s)
 - [`test/e2e/` — 18 module(s)](pages/02-test-e2e.md) — 18 module(s)
 - [`symphony_clone/src/orchestrator/` — 16 module(s)](pages/03-symphony_clone-src-orchestrator.md) — 16 module(s)
 - [`test/e2e/helpers/` — 14 module(s)](pages/04-test-e2e-helpers.md) — 14 module(s)
 - [`symphony_clone/test/` — 13 module(s)](pages/05-symphony_clone-test.md) — 13 module(s)
-- [`symphony_clone/src/tracker/` — 8 module(s)](pages/06-symphony_clone-src-tracker.md) — 8 module(s)
-- [`tools/` — 7 module(s)](pages/07-tools.md) — 7 module(s)
+- [`tools/` — 9 module(s)](pages/06-tools.md) — 9 module(s)
+- [`symphony_clone/src/tracker/` — 8 module(s)](pages/07-symphony_clone-src-tracker.md) — 8 module(s)
 - [`test/helpers/` — 6 module(s)](pages/08-test-helpers.md) — 6 module(s)
 - [`open_wiki/scripts/` — 4 module(s)](pages/09-open_wiki-scripts.md) — 4 module(s)
 - [`symphony_clone/src/` — 4 module(s)](pages/10-symphony_clone-src.md) — 4 module(s)

@@ -1,6 +1,6 @@
-# `test/` — 292 module(s)
+# `test/` — 294 module(s)
 
-292 module(s).
+294 module(s).
 
 ## Dependencies
 
@@ -712,4 +712,4 @@ flowchart LR
 ### Symbols
   - `read` (function) → js:test/e2e-no-hang-contract.test.js:17 — `read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8')`
 
-_+ 212 more module(s) not shown (page capped at 80)._
+_+ 214 more module(s) not shown (page capped at 80)._
