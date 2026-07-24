@@ -1,0 +1,5 @@
+{
+  "instrumented": 30,
+  "sensors": 95,
+  "note": "Ratchet, not a target. Registered sensors that actually emit a bite-ledger outcome, under their own id or a records_as alias. It may rise or hold, never fall: a drop means a control stopped reporting and has gone invisible to the value meter. Not all 95 are instrumentable — planning- and drift-cadence sensors mostly produce reports rather than per-run outcomes. Raise this baseline when you wire another sensor."
+}

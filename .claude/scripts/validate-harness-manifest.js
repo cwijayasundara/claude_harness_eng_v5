@@ -88,7 +88,63 @@ function validate(manifest) {
   return { errors, counts: { guides: guides.length, sensors: sensors.length } };
 }
 
-module.exports = { validate, DEFAULT_MANIFEST };
+// --- the ledger <-> registry join ------------------------------------------
+//
+// A control that emits outcomes under an id the registry does not know is
+// invisible to the value meter and absent from HARNESS.md: it runs, but nothing
+// can reason about it. These helpers make the join checkable from source alone
+// (the ledger itself is gitignored runtime state, so CI cannot read it).
+
+function jsFilesUnder(dir, out = []) {
+  let entries = [];
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) { return out; }
+  for (const e of entries) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) jsFilesUnder(p, out);
+    else if (e.name.endsWith('.js')) out.push(p);
+  }
+  return out;
+}
+
+// Ids passed as string literals to runCheck(...) or recordOutcome({sensor: ...}).
+// Ids the commit registry derives from GATE_CATALOG are added from the catalog.
+function emittedSensorIds(repoRoot) {
+  const ids = new Set();
+  const files = jsFilesUnder(path.join(repoRoot, '.claude', 'hooks'))
+    .concat(jsFilesUnder(path.join(repoRoot, '.claude', 'scripts')));
+  for (const file of files) {
+    let src = '';
+    try { src = fs.readFileSync(file, 'utf8'); } catch (_) { continue; }
+    for (const m of src.matchAll(/runCheck\(\s*['"]([^'"]+)['"]/g)) ids.add(m[1]);
+    for (const m of src.matchAll(/sensor:\s*['"]([^'"]+)['"]/g)) ids.add(m[1]);
+  }
+  try {
+    for (const g of require(path.join(repoRoot, '.claude', 'hooks', 'lib', 'gate-registry')).GATE_CATALOG) {
+      ids.add(g.id);
+    }
+  } catch (_) { /* registry absent in a trimmed install */ }
+  return [...ids].sort();
+}
+
+/** @returns {string|null} the registered control id this ledger id belongs to. */
+function resolveSensorId(manifest, emittedId) {
+  const sensors = Array.isArray(manifest.sensors) ? manifest.sensors : [];
+  if (sensors.some((s) => s.id === emittedId)) return emittedId;
+  const owner = sensors.find((s) => (s.records_as || []).includes(emittedId));
+  return owner ? owner.id : null;
+}
+
+/** Registered sensors that actually emit an outcome, under their id or an alias. */
+function instrumentedSensors(manifest, repoRoot) {
+  const emitted = new Set(emittedSensorIds(repoRoot));
+  return (manifest.sensors || []).filter(
+    (s) => emitted.has(s.id) || (s.records_as || []).some((a) => emitted.has(a))
+  );
+}
+
+module.exports = {
+  validate, DEFAULT_MANIFEST, emittedSensorIds, resolveSensorId, instrumentedSensors,
+};
 
 if (require.main === module) {
   const manifestPath = process.argv[2] || DEFAULT_MANIFEST;
@@ -100,11 +156,18 @@ if (require.main === module) {
     process.exit(2);
   }
   const { errors, counts } = validate(manifest);
+  const orphans = emittedSensorIds(REPO_ROOT).filter((id) => !resolveSensorId(manifest, id));
+  for (const id of orphans) {
+    errors.push(`sensor id "${id}" is emitted by a running gate but is in no registry entry ` +
+      '(add the control, or list it under records_as on the control that owns it)');
+  }
   if (errors.length) {
     process.stderr.write(`harness-manifest INVALID (${errors.length} error(s)):\n`);
     for (const e of errors) process.stderr.write(`  - ${e}\n`);
     process.exit(1);
   }
-  process.stdout.write(`harness-manifest OK: ${counts.guides} guides, ${counts.sensors} sensors, all wired_at paths resolve.\n`);
+  const wired = instrumentedSensors(manifest, REPO_ROOT).length;
+  process.stdout.write(`harness-manifest OK: ${counts.guides} guides, ${counts.sensors} sensors, ` +
+    `all wired_at paths resolve; ${wired}/${counts.sensors} sensors emit to the bite ledger.\n`);
   process.exit(0);
 }

@@ -62,9 +62,9 @@ function netBraces(line) {
 // code example is parsed as a real declaration. Both produce phantom function
 // lengths, which is a block the author cannot act on.
 //
-// Regex literals are NOT stripped (telling them from division needs real lexing), so
-// a brace inside one is still miscounted; that is a narrower residue than before and
-// is called out here rather than hidden.
+// Regex literals ARE stripped too (see regexAllowed). Leaving them in was no mere
+// residue: a backtick inside one opened a phantom template literal that swallowed the
+// file, and an unbalanced brace shifted depth — a phantom length on an innocent function.
 function stripNonCode(lines) {
   const state = { inBlockComment: false, inTemplate: false };
   return lines.map((line) => stripLine(line, state));
@@ -87,6 +87,39 @@ function skipOpenConstruct(line, i, state) {
   if (end === -1) return line.length;
   state.inTemplate = false;
   return end + 1;
+}
+
+// A `/` starts a regex only in operand position. After an identifier, number,
+// `)` or `]` it is division. Getting this wrong in the safe direction (reading a
+// regex as division) just restores the old behaviour; the unsafe direction would
+// blank real code, so the set is deliberately narrow.
+const REGEX_PRECEDERS = new Set(
+  ['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '^', '~', '<', '>']
+);
+const REGEX_KEYWORDS = /\b(return|typeof|instanceof|in|of|case|do|else|yield|await|new|delete|void)$/;
+
+function regexAllowed(emitted) {
+  const trimmed = emitted.replace(/\s+$/, '');
+  if (trimmed === '') return true;
+  if (REGEX_PRECEDERS.has(trimmed[trimmed.length - 1])) return true;
+  return REGEX_KEYWORDS.test(trimmed);
+}
+
+// Consume a regex literal starting at i. A regex cannot span lines, so an
+// unterminated one means this was division after all: return -1 and let the
+// caller emit the character normally.
+function skipRegex(line, i) {
+  let j = i + 1;
+  let inClass = false;
+  while (j < line.length) {
+    const ch = line[j];
+    if (ch === '\\') { j += 2; continue; }
+    if (ch === '[') inClass = true;
+    else if (ch === ']') inClass = false;
+    else if (ch === '/' && !inClass) return j + 1;
+    j++;
+  }
+  return -1;
 }
 
 // Consume a single-quoted or double-quoted string starting at i (honouring
@@ -116,6 +149,10 @@ function stripLine(line, state) {
     if (two === LINE_COMMENT) { out += ' '.repeat(line.length - i); break; }
     if (two === BLOCK_OPEN) { state.inBlockComment = true; out += '  '; i += 2; continue; }
     const ch = line[i];
+    if (ch === '/' && regexAllowed(out)) {
+      const end = skipRegex(line, i);
+      if (end !== -1) { out += ' '.repeat(end - i); i = end; continue; }
+    }
     if (ch === '`') { state.inTemplate = true; out += ' '; i += 1; continue; }
     if (ch === '"' || ch === "'") {
       const end = skipQuoted(line, i);

@@ -177,7 +177,7 @@ const GROUPING = new Set(['(', ')', '{', '}']);
 
 /** `cd src && rg pattern` is scoped; `cd /` is not. Subshell grouping is noise. */
 function cdTarget(tokens) {
-  const t = tokens.filter((x) => !GROUPING.has(x)).map((x) => x.replace(/^\(+/, ''));
+  const t = tokens.filter((x) => !GROUPING.has(x)).map((x) => x.replace(/^[({]+/, ''));
   if (t[0] !== 'cd' && t[0] !== 'pushd') return null;
   return t.length > 1 ? t[1] : '~'; // bare `cd` goes to $HOME, which is not narrowing
 }
@@ -186,7 +186,7 @@ function cdTarget(tokens) {
 // not narrowing — trusting it would silently disarm the path-less branch.
 function cdScopes(target, projectDir) {
   if (!target || target === '-' || target.includes('..')) return false;
-  if (target.includes('$') || target.includes('`')) return false;
+  if (/[$`]/.test(target)) return false; // $HOME, $(git rev-parse …), backticks
   return !isRoot(target, projectDir);
 }
 

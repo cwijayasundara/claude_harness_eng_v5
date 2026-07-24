@@ -1,5 +1,5 @@
 {
-  "count": 131,
+  "count": 138,
   "ids": [
     "acceptance-tests-first",
     "accessibility",
@@ -97,10 +97,12 @@
     "pr-walkthrough",
     "promote-eligibility-gate",
     "prompt-cache-prefix",
+    "protected-env-file",
     "quality-card",
     "readiness-digest",
     "reasons-canvas",
     "record-reuse-decision",
+    "refactor-purity",
     "regression-suite-full",
     "resume-smoke",
     "retro-auto-invoke",
@@ -113,14 +115,17 @@
     "secret-scan",
     "secure-baseline-wiring",
     "security-baseline",
+    "security-patterns",
     "security-review",
     "semantic-divergence",
     "sensor-arbitration-policy",
     "sensor-value-meter",
     "sensor-waiver-validation",
+    "sprint-contract",
     "sprout-diff-one-symbol",
     "story-ownership-clusters",
     "stub-smell-gate",
+    "tdd-test-first",
     "team-policy",
     "test-deletion-guard",
     "token-advisor",
@@ -128,9 +133,11 @@
     "tool-output-pack",
     "topology-templates",
     "trace-check",
+    "trust-boundary",
     "type-check",
     "unit-tests",
     "verification-matrix-gate",
-    "vocabulary-check"
+    "vocabulary-check",
+    "write-scope"
   ]
 }
