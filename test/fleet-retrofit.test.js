@@ -148,7 +148,7 @@ test('7c: an empty repos[] is not a vacuous green (total 0, exit 1)', () => {
 
 // ===================== 9. registration + control budget =====================
 
-test('9: fleet-gate-retrofit is a registered, honest control; budget = 132', () => {
+test('9: fleet-gate-retrofit is a registered, honest control; budget = 130', () => {
   const { validate } = require(path.join(SCRIPTS, 'validate-harness-manifest'));
   const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'harness-manifest.json'), 'utf8'));
   const entry = (manifest.sensors || []).find((s) => s.id === 'fleet-gate-retrofit');

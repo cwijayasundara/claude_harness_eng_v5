@@ -102,12 +102,14 @@
       "description": "Bun Phase B mechanical migrate via /refactor --mechanical and .claude/templates/migrate/ (MAPPING.md, CONSTRAINTS.tsv, CANARY.md). Mapping dual-review + mandatory 3-file canary before fan-out."
     },
     {
-      "id": "canary-implement-feature",
+      "id": "canary-before-fanout",
       "axis": "behaviour",
       "kind": "feedforward",
-      "wired_at": ".claude/skills/implement/SKILL.md",
+      "wired_at": ".claude/skills/refactor/SKILL.md",
       "status": "active",
-      "description": "G32 canary generalization (Phase B): /implement Step 0.5 canaries when group owns >~10 files or plan is mechanical; /feature treats first ready story as canary for epic/multi-group work."
+      "gap_ref": "G32",
+      "net_add_justification": "Merges the former canary-first-rollout + canary-implement-feature (v6-reduction, one-owner-per-invariant): both were the same G32 discipline registered twice for different call sites. Now one owner across all four sites: /refactor Step 5 (--sweep/--auto-fix), /upgrading-dependencies Step 6 (call-site rewrites), /implement Step 0.5 (large/mechanical group), /feature (first ready story as epic canary). Distinct from mechanical-migrate (the broader Bun-Phase-B migrate feature, whose own 3-file canary is one instance of this discipline).",
+      "description": "Prompt-level guide (gap G32): before applying one mechanical change across many files or stories, prove the pattern on a small trial batch (3 files, or the smallest representative sample; threshold ~10 files) and run tests/lint/typecheck on it first; a canary failure revises the pattern rather than forcing a post-fan-out bisect. Wired at /refactor Step 5, /upgrading-dependencies Step 6, /implement Step 0.5, and /feature (first ready story as epic canary). Prompt-only, no computational sensor: the file-count trigger is judgment the agent applies mid-task, and a canary failure is caught by the same test/lint/typecheck gates every step already runs."
     },
     {
       "id": "semantic-divergence",
@@ -347,15 +349,6 @@
       "status": "active",
       "gap_ref": "G34",
       "description": "Shipped record/replay test-double kit (DB transactional-rollback fixture, HTTP ReplayTransport at the wrapper _call seam, deterministic FakeLLMClient with golden structured responses keyed by request hash) bound under HARNESS_TEST_REPLAY=1, plus a Ports-and-Adapters at-template.py. Converts the harness's live-integration test story into a deterministic one: the /test integration-generation step (Step 4.7) generates tests/integration/ against these doubles, the live-externals sensor (G36) blocks tests that reach real externals instead, and the regression gates (G15/G16) run --replay against them. v1 covers the Python/FastAPI backend; TS/React and other stacks are a later gap."
-    },
-    {
-      "id": "canary-first-rollout",
-      "axis": "behaviour",
-      "kind": "feedforward",
-      "wired_at": ".claude/skills/refactor/SKILL.md",
-      "status": "active",
-      "gap_ref": "G32",
-      "description": "Prompt-level guide (gap G32, prompt-only like acceptance-tests-first's discipline half before G23 added its gate): when a single mechanical fix — a /refactor principle applied across a --sweep --auto-fix batch, or a major dependency bump's call-site rewrite — spans more than ~10 files, apply it to a small trial batch (3 files, or the smallest representative sample) first, prove it with tests/lint/typecheck, and only then extend the same edit to the rest. Wired into refactor/SKILL.md Step 5 and upgrading-dependencies/SKILL.md Step 6 (locked by test/canary-rollout-wiring.test.js, same skill-text-assertion pattern test/gate-reverify-wiring.test.js uses for a prompt-only feature with no runtime script). No computational sensor: the file-count trigger is judgment the agent applies mid-task, not a mechanically checkable commit-time property — a canary failure is caught by the SAME test/lint/typecheck gates every other step already runs, not a new one."
     },
     {
       "id": "cyclic-dependency-prepass",
@@ -817,17 +810,6 @@
       "description": "axe-core gate (gap G12): default-on for UI stories. contract-accessibility-default.js injects a default accessibility_checks block into any contract with playwright_checks (opt out via project-manifest accessibility.enabled:false; explicit blocks respected); the evaluator then runs axe and FAILs serious/critical impacts in Full mode (failure_layer:accessibility), WARN in Lean. Gate logic lives in evaluate/SKILL.md."
     },
     {
-      "id": "grounding-check",
-      "axis": "traceability",
-      "type": "computational",
-      "cadence": "planning",
-      "status": "active",
-      "scope": "artifacts",
-      "wired_at": ".claude/skills/brd/scripts/grounding-check.js",
-      "signal": "net-new or dropped requirements vs FRD or confirmed interview spine",
-      "description": "Deterministic hard block: the BRD may only contain content traced to the FRD or interview requirements spine, or the clarification log."
-    },
-    {
       "id": "trace-check",
       "axis": "traceability",
       "type": "computational",
@@ -835,8 +817,9 @@
       "status": "active",
       "scope": "artifacts",
       "wired_at": ".claude/scripts/trace-check.js",
-      "signal": "untraced stories, dropped BRs, orphan/uncovered tests",
-      "description": "Deterministic hard block at spec (story vs BRD) and test (case vs AC + obligation)."
+      "signal": "net-new/dropped or untraced IDs across the planning trace chain: BRD vs FRD/interview spine, story vs BRD, test case vs AC + obligation",
+      "net_add_justification": "Absorbs the former separate grounding-check sensor (v6-reduction, one-owner-per-invariant): the net-new/dropped ID-linkage invariant is one engine (trace-check.js) across every link, so it is registered once here rather than split into a second same-invariant sensor. grounding-check.js stays as a BRD-specific field-renaming adapter (still runs and is still tested), named below so the BRD hard block is not hidden.",
+      "description": "Deterministic hard block on ID linkage across the whole planning trace chain — the single owner of the net-new/dropped invariant. One engine (trace-check.js) backs all links: BRD vs FRD/interview spine (via the BRD-specific grounding-check.js adapter at /brd Step 4.4, which only renames fields), story vs BRD (spec), and test case vs AC + obligation (test)."
     },
     {
       "id": "vocabulary-check",
