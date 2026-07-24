@@ -51,6 +51,7 @@
     "control-budget": "node .claude/scripts/control-budget-gate.js",
     "sensor-value": "node .claude/scripts/sensor-value-report.js",
     "sensor-canary": "node .claude/scripts/sensor-canary.js",
+    "sensor-withhold": "node .claude/scripts/sensor-withhold.js",
     "approved-fixtures": "node .claude/scripts/approved-fixtures-gate.js",
     "approve-fixtures": "node .claude/scripts/approve-fixtures.js",
     "flake-history": "node .claude/scripts/flake-history.js",

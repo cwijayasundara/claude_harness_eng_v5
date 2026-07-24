@@ -325,6 +325,7 @@
         "runs-retention",
         "sensor-canary",
         "sensor-value-report",
+        "sensor-withhold",
         "telemetry-ledger-rotate",
         "telemetry-memory",
         "telemetry-phase-eval",
@@ -341,7 +342,8 @@
         "agent-readiness-shared",
         "control-budget",
         "loop-health",
-        "stale-stamp"
+        "stale-stamp",
+        "withhold-verdicts"
       ],
       "hook": [
         "auto-continue-on-stop",

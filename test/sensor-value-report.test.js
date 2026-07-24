@@ -103,3 +103,51 @@ test('render produces the cut list once the threshold is met', () => {
   assert.match(out, /NEVER BLOCKED[^\n]*quiet/);
   assert.match(out, /ran=25 blocked=0 avg=4ms \[session\]/);
 });
+
+// The withhold-and-rerun verdict is the decisive layer the canary cannot supply: a
+// gate can be proven-live yet still removable when no real job produces its input.
+const verdict = (sensor, degraded) => new Map([[sensor, { sensor, degraded }]]);
+
+test('a REMOVABLE verdict moves a never-blocked gate out of shelfware into removable', () => {
+  const c = classify(tally([row('quiet'), row('quiet')]), null, new Set(), verdict('quiet', false));
+  assert.ok(c.removable.includes('quiet'), 'a real subtractive test showing no degradation authorizes the cut');
+  assert.ok(!c.neverBlocked.includes('quiet'), 'a decisive verdict supersedes the ambiguous shelfware bucket');
+});
+
+test('a CONFIRMED-VALUABLE verdict rescues a never-blocked gate from the shelfware bucket', () => {
+  // Never blocked in the logs, yet withholding it degraded a real job — the log-based
+  // signal was misleading and the deterrent is confirmed.
+  const c = classify(tally([row('quiet'), row('quiet')]), null, new Set(), verdict('quiet', true));
+  assert.ok(c.confirmedValuable.includes('quiet'));
+  assert.ok(!c.neverBlocked.includes('quiet'));
+});
+
+test('a verdict can retire a proven-live gate the canary alone would keep', () => {
+  // sensor-canary proves the detector still bites a synthetic input; it cannot prove a
+  // real trajectory ever produces that input. A no-degradation verdict still cuts it.
+  const c = classify(tally([row('probe')]), null, new Set(['probe']), verdict('probe', false));
+  assert.ok(c.removable.includes('probe'));
+  assert.ok(!c.provenLive.includes('probe'), 'the real-job verdict outranks mechanical liveness');
+});
+
+test('a verdict on an actively-blocking gate is ignored — the ledger already proves it bites', () => {
+  // A gate with real block history is not shelfware; one no-degradation job must not
+  // relabel a live control "removable" — the failure the value meter exists to avoid.
+  const c = classify(tally([row('guard', { blocked: true }), row('guard')]), null, new Set(), verdict('guard', false));
+  assert.ok(!c.removable.includes('guard'), 'only genuinely-ambiguous never-blocked candidates are reclassifiable');
+});
+
+test('without a verdict the buckets are unchanged', () => {
+  const c = classify(tally([row('quiet'), row('quiet')]));
+  assert.deepStrictEqual(c.removable, []);
+  assert.deepStrictEqual(c.confirmedValuable, []);
+  assert.ok(c.neverBlocked.includes('quiet'), 'no verdict → stays an ambiguous candidate');
+});
+
+test('render surfaces decisive verdicts and prompts the subtractive test for the rest', () => {
+  const outcomes = Array.from({ length: 25 }, () => row('quiet', { surface: 'session' }));
+  const out = render(outcomes, 20, null, new Set(), verdict('quiet', false));
+  assert.match(out, /REMOVABLE[^\n]*quiet/);
+  const outNoVerdict = render(outcomes, 20);
+  assert.match(outNoVerdict, /sensor-withhold\.js record/, 'a candidate without a verdict must show how to run the test');
+});
