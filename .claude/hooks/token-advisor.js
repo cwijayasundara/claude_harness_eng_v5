@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { resolveProjectDir, runHook, countLines } = require('./lib/common');
 const { verboseCommandWarning } = require('./lib/verbose-command');
+const { searchScope } = require('./lib/search-scope');
 
 const RECEIPT_NAME = 'context-pack-last.json';
 const DEFAULT_RECEIPT_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
@@ -164,33 +165,34 @@ function contextSearchWarning(projectDir, ti, cfg) {
   };
 }
 
-/** Unconstrained repo-wide search when a real graph exists — prefer context-pack. */
-function unconstrainedSearchWarning(projectDir, command, cfg) {
+/**
+ * Repo-wide search when a real graph exists — prefer context-pack.
+ *
+ * Scoping is decided per search invocation by `searchScope` (a path operand
+ * narrows it), NOT by substring-matching the command. A context-pack receipt
+ * deliberately does NOT license this: the receipt proves a ritual ran, not
+ * that the search was constrained, so honouring it made the gate vacuous.
+ */
+function unconstrainedSearchWarning(projectDir, command) {
   const trimmed = String(command || '').trim();
   if (!trimmed) return null;
-  // Only rg/find/grep style discovery
-  if (!/\b(rg|grep|find|ag|ack)\b/.test(trimmed)) return null;
-  // Already path-scoped or using compact search
-  if (/search-compact\.js/.test(trimmed)) return null;
-  if (/--glob\s| -g\s| --path\s| --type\s| \.\/src| src\/| backend\/| packages\//.test(trimmed)) return null;
-  // find with maxdepth or path after find
-  if (/\bfind\b/.test(trimmed) && !/\bfind\s+(\.|\"\.\"|'\\.')(\s|$)/.test(trimmed) && !/\bfind\s+\//.test(trimmed)) {
-    // find with explicit subdir — ok
-    if (!/\bfind\s+\.\s/.test(trimmed) && !/\bfind\s+\.\//.test(trimmed)) return null;
-  }
+  if (/search-compact\.js|context-pack\.js/.test(trimmed)) return null;
+
+  const { unconstrained, reason } = searchScope(trimmed, projectDir);
+  if (!unconstrained) return null;
 
   const meta = graphMeta(projectDir);
   if (!meta.real || !meta.hasRanges) return null;
-  if (hasFreshContextPackReceipt(projectDir, cfg.context_pack_receipt_max_age_ms)) return null;
 
   return {
     kind: 'unconstrained_search',
     tool: 'Bash',
     command: trimmed,
+    reason,
     message:
-      `TOKEN ADVISORY: unconstrained repo search without a recent context pack.\n` +
+      `TOKEN ADVISORY: repo-wide search — ${reason}.\n` +
       `  Prefer: node .claude/scripts/context-pack.js --diff --budget 1600 "<question>"\n` +
-      `  Then narrow rg to pack paths (e.g. rg pattern src/auth). Or use search-compact.js.\n`,
+      `  Or just scope it to a path (e.g. rg pattern src/auth). Or use search-compact.js.\n`,
   };
 }
 
@@ -201,7 +203,7 @@ function selectWarning(projectDir, toolName, ti, cfg) {
     return contextSearchWarning(projectDir, ti, cfg) || broadReadWarning(projectDir, ti, cfg);
   }
   if (toolName === 'Bash') {
-    return unconstrainedSearchWarning(projectDir, ti.command, cfg)
+    return unconstrainedSearchWarning(projectDir, ti.command)
       || verboseCommandWarning(ti.command, cfg);
   }
   return null;

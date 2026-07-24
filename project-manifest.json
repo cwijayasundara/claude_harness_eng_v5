@@ -46,7 +46,7 @@
   },
   "token_governor": {
     "enabled": true,
-    "mode": "enforced",
+    "mode": "advisory",
     "living_navigation": true,
     "context_search_required": true,
     "max_source_read_lines": 300,

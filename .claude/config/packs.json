@@ -180,6 +180,8 @@
         "drift",
         "modularity-pack",
         "naming-clusters",
+        "search-scope",
+        "shell-lex",
         "verbose-command"
       ],
       "hook": [
