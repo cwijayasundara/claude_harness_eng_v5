@@ -13,8 +13,8 @@ _Source: `README.md`_
 
 | Metric | Value |
 |---|---|
-| Indexed files | 443 |
-| Graph edges | 2015 |
+| Indexed files | 445 |
+| Graph edges | 2032 |
 | Concept pages | 20 |
 | Wiki cluster pages | 20 |
 
@@ -59,7 +59,6 @@ npm run ask -- "..."     # ask the codebase
 - [test/e2e](specs/brownfield/wiki/concepts/test__e2e.md)
 - [symphony_clone/src](specs/brownfield/wiki/concepts/symphony_clone__src.md)
 - [dsl-packs/private-equity](specs/brownfield/wiki/concepts/dsl-packs__private-equity.md)
-- [tools/partition-report.js](specs/brownfield/wiki/concepts/tools__partition-report.js.md)
 - [test/fixtures](specs/brownfield/wiki/concepts/test__fixtures.md)
 - [symphony_clone/test](specs/brownfield/wiki/concepts/symphony_clone__test.md)
 - [test/evals](specs/brownfield/wiki/concepts/test__evals.md)
@@ -75,6 +74,7 @@ npm run ask -- "..."     # ask the codebase
 - [test/approve-fixtures.test.js](specs/brownfield/wiki/concepts/test__approve-fixtures.test.js.md)
 - [test/approved-fixtures-gate.test.js](specs/brownfield/wiki/concepts/test__approved-fixtures-gate.test.js.md)
 - [test/archive-state.test.js](specs/brownfield/wiki/concepts/test__archive-state.test.js.md)
+- [test/ask-codebase-readiness-digest.test.js](specs/brownfield/wiki/concepts/test__ask-codebase-readiness-digest.test.js.md)
 
 ## DeepWiki cluster pages
 
