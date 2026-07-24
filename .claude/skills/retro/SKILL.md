@@ -53,6 +53,13 @@ answer for each before drafting new ones.
   fire or never block over run history (candidate shelfware to retire). Below
   its data floor it prints INSUFFICIENT DATA; treat that as "no removal
   evidence yet", not "everything is earning its keep".
+- `npm run sensor-comprehension-debt` — the merged-but-unread STOCK meter:
+  reads `.claude/state/merge-provenance.jsonl`, keeps the `human_reviewed:false`
+  (auto-merged) rows, and ranks them by dependents × security-boundary. A high
+  total or a heavy top entry is evidence for a recommendation to schedule a
+  human read-through of that unread code, not a control change. An empty ledger
+  or a missing `code-graph.json` prints a note; treat that as "no stock
+  evidence yet", not "no dark factory".
 - `npm run control-budget -- --check` — the harness's own control-count ratchet
   (`HARNESS.md` → *The control budget*). Reports whether the registered-control
   count is at/over baseline. This is the *subtractive* counter-force: `/retro`

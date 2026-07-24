@@ -1391,6 +1391,18 @@
       "description": "Report-only. Reads .claude/state/sensor-outcomes.jsonl + GATE_CATALOG and names never-fired / never-blocked commit gates so /retro can propose retiring them. Degrades loudly (INSUFFICIENT DATA) below --min-runs. Run via `npm run sensor-value` or in /retro."
     },
     {
+      "id": "comprehension-debt",
+      "axis": "maintainability",
+      "type": "computational",
+      "cadence": "drift",
+      "status": "active",
+      "scope": "repo",
+      "wired_at": ".claude/scripts/sensor-comprehension-debt.js",
+      "signal": "cumulative stock of merged-but-unread code (auto-merged diffs no human read), weighted by dependents and security boundary",
+      "net_add_justification": "Every maintainability sensor measures a per-diff FLOW property (this change's cycles, coupling, length); none measures the cumulative STOCK of merged-but-unread code — the 'dark factory' that accretes when auto-merge lands diffs no human ever read (Horthy). This is a distinct axis of debt no existing control sees. Shipped emission-first (merge-provenance.jsonl is written by enableAutoMerge + the /gate receipt BEFORE this reader existed) so it cannot repeat the sensor-outcomes.jsonl-empty trap. Report-only DRIFT sensor — it adds a /retro nomination surface, not a merge-blocking gate, so it is a judgement input, not new friction.",
+      "description": "Report-only DRIFT sensor (exit 0 always). Reads .claude/state/merge-provenance.jsonl, keeps human_reviewed:false rows, and weights each unread merge by computeBlastRadius (impact-scope.js — how many dependents lean on the unread code) × touchesSecurityBoundary (review-policy.js). Emits a ranked comprehension-debt score for /retro. Degrades loudly (a note) when code-graph.json is absent (blast reach counted as 0) or the ledger is empty. Run via `npm run sensor-comprehension-debt` or in /retro."
+    },
+    {
       "id": "story-ownership-clusters",
       "axis": "traceability",
       "type": "computational",

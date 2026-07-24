@@ -324,6 +324,7 @@
         "run-custom-sensors",
         "runs-retention",
         "sensor-canary",
+        "sensor-comprehension-debt",
         "sensor-value-report",
         "sensor-withhold",
         "telemetry-ledger-rotate",
@@ -342,6 +343,7 @@
         "agent-readiness-shared",
         "control-budget",
         "loop-health",
+        "merge-provenance",
         "stale-stamp",
         "withhold-verdicts"
       ],

@@ -4,8 +4,11 @@
 // from symphony_clone/src/orchestrator/pr.js#enableAutoMerge (which is not copied
 // into target projects). Self-gating: a no-op unless --auto-merge / AUTO_MERGE=true.
 
+const path = require('path');
 const { execFileSync } = require('child_process');
+const { recordAutoMerge } = require('../hooks/lib/merge-provenance');
 
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const VALID_MERGE_METHODS = ['merge', 'squash', 'rebase'];
 
 function isAutoMergeEnabled(flags, env = process.env) {
@@ -46,7 +49,10 @@ function defaultRunner(cmd, args) {
 }
 
 function enableAutoMerge(prUrl, opts = {}) {
-  const { runner = defaultRunner, expectedSlug = null, method = 'merge' } = opts;
+  const {
+    runner = defaultRunner, expectedSlug = null, method = 'merge',
+    projectDir = REPO_ROOT, recordProvenance = recordAutoMerge,
+  } = opts;
   if (!isRealPrUrl(prUrl)) return { enabled: false, reason: 'no PR to merge' };
   const prSlug = repoSlugFromPrUrl(prUrl);
   if (expectedSlug && prSlug !== expectedSlug) {
@@ -54,6 +60,9 @@ function enableAutoMerge(prUrl, opts = {}) {
   }
   try {
     runner('gh', ['pr', 'merge', '--auto', `--${method}`, '--', prUrl]);
+    // Emission first: an auto-merge is merged-but-unread → record it as
+    // comprehension debt. Best-effort — never let a ledger write undo a merge.
+    try { recordProvenance(projectDir, { exec: runner }); } catch (_) { /* ledger is best-effort */ }
     return { enabled: true };
   } catch (error) {
     return { enabled: false, reason: error.message };

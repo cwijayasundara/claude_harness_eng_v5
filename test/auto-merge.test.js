@@ -3,10 +3,15 @@
 const assert = require('assert');
 const { test } = require('node:test');
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 const {
   isAutoMergeEnabled, resolveMethod, enableAutoMerge,
   isRealPrUrl, repoSlugFromGitUrl, repoSlugFromPrUrl,
 } = require('../.claude/scripts/auto-merge.js');
+const { readProvenance } = require('../.claude/hooks/lib/merge-provenance.js');
 
 test('isAutoMergeEnabled: flag, env, neither, both', () => {
   assert.strictEqual(isAutoMergeEnabled(['--auto-merge'], {}), true);
@@ -48,12 +53,42 @@ test('enableAutoMerge: slug mismatch refuses, no gh call', () => {
 
 test('enableAutoMerge: happy path calls gh pr merge --auto --<method>', () => {
   const calls = [];
+  // recordProvenance is stubbed so the happy path does not write into the real
+  // repo's state and stays a pure gh-call assertion.
   const r = enableAutoMerge('https://github.com/owner/repo/pull/9', {
     runner: (c, a) => { calls.push([c, a]); return ''; },
     expectedSlug: 'github.com/owner/repo', method: 'squash',
+    recordProvenance: () => {},
   });
   assert.strictEqual(r.enabled, true);
   assert.deepStrictEqual(calls[0], ['gh', ['pr', 'merge', '--auto', '--squash', '--', 'https://github.com/owner/repo/pull/9']]);
+});
+
+test('enableAutoMerge: writes a REAL human_reviewed:false / auto_merge_queued row', () => {
+  // Round-trip the real ledger (no recorder stub): the runner returns '' for
+  // both the gh call and the best-effort git stats, so the row lands with empty
+  // stats but the honest event + review flag we care about.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'am-prov-'));
+  const r = enableAutoMerge('https://github.com/owner/repo/pull/9', {
+    runner: () => '',
+    expectedSlug: 'github.com/owner/repo',
+    projectDir: dir,
+  });
+  assert.strictEqual(r.enabled, true);
+  const rows = readProvenance(dir);
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].human_reviewed, false);
+  assert.strictEqual(rows[0].event, 'auto_merge_queued');
+  assert.strictEqual(rows[0].lane, 'auto-merge');
+});
+
+test('enableAutoMerge: a provenance write failure does not undo the merge', () => {
+  const r = enableAutoMerge('https://github.com/owner/repo/pull/9', {
+    runner: () => '',
+    expectedSlug: 'github.com/owner/repo',
+    recordProvenance: () => { throw new Error('disk full'); },
+  });
+  assert.strictEqual(r.enabled, true);
 });
 
 test('enableAutoMerge: runner error falls back to not-enabled (no throw)', () => {

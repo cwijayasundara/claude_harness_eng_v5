@@ -52,6 +52,7 @@
     "sensor-value": "node .claude/scripts/sensor-value-report.js",
     "sensor-canary": "node .claude/scripts/sensor-canary.js",
     "sensor-withhold": "node .claude/scripts/sensor-withhold.js",
+    "sensor-comprehension-debt": "node .claude/scripts/sensor-comprehension-debt.js",
     "approved-fixtures": "node .claude/scripts/approved-fixtures-gate.js",
     "approve-fixtures": "node .claude/scripts/approve-fixtures.js",
     "flake-history": "node .claude/scripts/flake-history.js",
