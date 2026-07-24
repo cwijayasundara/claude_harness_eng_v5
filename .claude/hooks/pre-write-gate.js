@@ -11,7 +11,7 @@
 // Escape hatches: HARNESS_TDD_GATE=off, HARNESS_PATTERN_BLOCK=off.
 
 const path = require('path');
-const { TRACKED_EXTS, resolveProjectDir, runHook, isSkippedPath, countLines, realResolve, isWriteInScope, optionalRequire } =
+const { TRACKED_EXTS, resolveProjectDir, runHook, isSkippedPath, countLines, realResolve, isWriteInScope, optionalRequire, reportFailure } =
   require('./lib/common');
 const { finalContent, insertedContent, originalContent } = require('./lib/simulate');
 const { scanSecrets, secretScanExempt, isProtectedEnvFile } = require('./lib/secrets');
@@ -33,11 +33,21 @@ let current = { sensor: null, projectDir: null, target: null, started: 0 };
 // records ran/blocked/elapsed, which is what makes the control set subtractable: a
 // check that never fires, or fires constantly without catching anything, becomes
 // visible rather than assumed useful.
+// A check that THROWS is recorded as errored and the gate carries on. Letting the
+// throw unwind would take every LATER check in this hook down with it — one broken
+// check would silently disable the whole gate, and the ledger would show the
+// survivors as never having run.
 function runCheck(sensor, projectDir, target, fn) {
   current = { sensor, projectDir, target, started: Date.now() };
-  fn();
+  let errored = false;
+  try {
+    fn();
+  } catch (err) {
+    errored = true;
+    reportFailure(`pre-write-gate:${sensor}`, err, { record: false });
+  }
   recordOutcome(projectDir, {
-    sensor, ran: true, blocked: false, surface: 'session', target,
+    sensor, ran: true, blocked: false, errored, surface: 'session', target,
     elapsedMs: Date.now() - current.started,
   });
   current = { sensor: null, projectDir: null, target: null, started: 0 };

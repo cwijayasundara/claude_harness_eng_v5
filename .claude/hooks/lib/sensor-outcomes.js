@@ -24,11 +24,15 @@ const OUTCOMES_REL = path.join('.claude', 'state', 'sensor-outcomes.jsonl');
 
 // surface: which cadence recorded this — 'commit' | 'session' | 'integration'.
 // elapsedMs: cost, so a control that is correct but slow is still visible.
-function recordOutcome(projectDir, { sensor, ran, blocked, surface, elapsedMs, target }) {
+// errored: the control CRASHED. Distinct from both "ran clean" and "blocked" —
+// an inert control must not read as dormant (the meter would recommend retiring
+// it) nor as biting (its apparent value would go up).
+function recordOutcome(projectDir, { sensor, ran, blocked, surface, elapsedMs, target, errored }) {
   try {
     const file = path.join(projectDir, OUTCOMES_REL);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const row = { sensor: String(sensor), ran: !!ran, blocked: !!blocked, ts: Date.now() };
+    if (errored) row.errored = true;
     if (surface) row.surface = String(surface);
     if (Number.isFinite(elapsedMs)) row.elapsed_ms = Math.round(elapsedMs);
     if (target) row.target = String(target);
@@ -39,7 +43,12 @@ function recordOutcome(projectDir, { sensor, ran, blocked, surface, elapsedMs, t
 }
 
 // Time a check and record it in one step. Returns whatever fn returns; a throw is
-// recorded as a block (the check stopped the work) and re-thrown unchanged.
+// recorded as ERRORED and re-thrown unchanged.
+//
+// A throw is a crash, not a block. Recording it as blocked (as this used to) makes
+// a control that is broken look like a control that is working — the one reading
+// of the ledger that is worse than no reading at all. A deliberate block exits the
+// process from block(), which never unwinds to here.
 function timeOutcome(projectDir, { sensor, surface, target }, fn) {
   const started = Date.now();
   try {
@@ -47,7 +56,9 @@ function timeOutcome(projectDir, { sensor, surface, target }, fn) {
     recordOutcome(projectDir, { sensor, ran: true, blocked: false, surface, target, elapsedMs: Date.now() - started });
     return out;
   } catch (err) {
-    recordOutcome(projectDir, { sensor, ran: true, blocked: true, surface, target, elapsedMs: Date.now() - started });
+    recordOutcome(projectDir, {
+      sensor, ran: true, blocked: false, errored: true, surface, target, elapsedMs: Date.now() - started,
+    });
     throw err;
   }
 }

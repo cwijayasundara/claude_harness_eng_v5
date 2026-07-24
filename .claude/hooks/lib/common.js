@@ -74,6 +74,16 @@ function readHookInputAsync(timeoutMs = 4000) {
     stdin.on('data', (c) => { data += c; });
     stdin.on('end', () => {
       detachStdin(stdin, timer);
+      // No event at all means the hook was not invoked by Claude Code (a fixture,
+      // a manual run). That is not a control-health signal, so it is tagged and
+      // kept out of the sensor ledger — otherwise every test run would leave the
+      // ERRORED bucket non-empty and the operator would learn to ignore it.
+      if (data.trim() === '') {
+        const empty = new Error('readHookInput: no hook event on stdin');
+        empty.code = 'EMPTY_HOOK_INPUT';
+        reject(empty);
+        return;
+      }
       try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
     });
     stdin.on('error', fail);
@@ -149,20 +159,56 @@ function isWriteInScope(projectDir, resolvedPath) {
   return resolvedPath === project || resolvedPath.startsWith(project + path.sep);
 }
 
-// A hook crash must never block work, but it must not be invisible either:
-// record it so a broken gate is discoverable instead of silently disabled.
-function reportFailure(hookName, err) {
+// A hook crash must never block work, but it must not be invisible either.
+//
+// Three channels, because a log nobody reads is not observability:
+//   1. the sensor ledger, as an `errored` outcome — without this the value meter
+//      sees ran=0 and reports the inert control as "NEVER FIRED — check wiring or
+//      retire", i.e. it recommends deleting the gate that just broke;
+//   2. hook-errors.log, under the PROJECT being guarded (resolveProjectDir honours
+//      CLAUDE_PROJECT_DIR — walking up from this file logs to the harness repo
+//      instead of the project whenever the harness is installed as a plugin);
+//   3. stderr, so the crash is visible in-session instead of only post-hoc.
+// `record: false` when the caller writes its own, richer ledger row (a per-check
+// crash inside a multi-check gate) — otherwise the crash is counted twice, once
+// under a sensor id that does not exist.
+function warnToStderr(text) {
+  try { process.stderr.write(text); } catch (_) { /* stderr closed */ }
+}
+
+function persistFailure(hookName, message, record) {
   try {
-    const projectDir = findProjectDir(path.dirname(__dirname)) || process.cwd();
+    const projectDir = resolveProjectDir(path.dirname(__dirname));
     const logDir = path.join(projectDir, '.claude', 'state');
     fs.mkdirSync(logDir, { recursive: true });
     fs.appendFileSync(
       path.join(logDir, 'hook-errors.log'),
-      `${new Date().toISOString()} ${hookName}: ${err && err.message ? err.message : err}\n`
+      `${new Date().toISOString()} ${hookName}: ${message}\n`
     );
+    // Required late: sensor-outcomes pulls in no hook modules, so there is no
+    // cycle, but keeping it lazy means a telemetry bug cannot break hook startup.
+    if (record) {
+      require('./sensor-outcomes').recordOutcome(projectDir, {
+        sensor: hookName, ran: true, blocked: false, errored: true, surface: 'session',
+      });
+    }
   } catch (_) {
     /* last resort: stay silent rather than brick the session */
   }
+}
+
+// No event on stdin means the hook was never invoked by Claude Code — a fixture or
+// a manual run. Nothing crashed and there is no control outcome, so it stays out of
+// BOTH the ledger and the log: a signal that fires on every test run is a signal the
+// operator stops reading. A genuinely mis-wired hook surfaces as never-ran instead.
+function reportFailure(hookName, err, { record = true } = {}) {
+  if (err && err.code === 'EMPTY_HOOK_INPUT') {
+    warnToStderr(`[hook: ${hookName}] no event on stdin — not invoked by Claude Code\n`);
+    return;
+  }
+  const message = err && err.message ? err.message : String(err);
+  persistFailure(hookName, message, record);
+  warnToStderr(`[hook: ${hookName}] FAILED OPEN — the control did not run: ${message}\n`);
 }
 
 // Load a module that belongs to an optional PACK. Returns null when the pack is not

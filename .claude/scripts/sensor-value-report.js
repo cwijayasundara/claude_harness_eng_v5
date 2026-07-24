@@ -31,9 +31,10 @@ const SLOW_MS = 500;
 function tally(outcomes) {
   const stats = new Map();
   for (const o of outcomes) {
-    const s = stats.get(o.sensor) || { ran: 0, blocked: 0, totalMs: 0, timed: 0, surfaces: new Set() };
+    const s = stats.get(o.sensor) || { ran: 0, blocked: 0, errored: 0, totalMs: 0, timed: 0, surfaces: new Set() };
     if (o.ran) s.ran += 1;
     if (o.blocked) s.blocked += 1;
+    if (o.errored) s.errored += 1;
     if (Number.isFinite(o.elapsed_ms)) { s.totalMs += o.elapsed_ms; s.timed += 1; }
     if (o.surface) s.surfaces.add(o.surface);
     stats.set(o.sensor, s);
@@ -50,11 +51,12 @@ function sensorIds(stats) {
 }
 
 function toRow(id, stats) {
-  const s = stats.get(id) || { ran: 0, blocked: 0, totalMs: 0, timed: 0, surfaces: new Set() };
+  const s = stats.get(id) || { ran: 0, blocked: 0, errored: 0, totalMs: 0, timed: 0, surfaces: new Set() };
   return {
     id,
     ran: s.ran,
     blocked: s.blocked,
+    errored: s.errored,
     avg_ms: s.timed ? Math.round(s.totalMs / s.timed) : null,
     surfaces: [...s.surfaces].sort(),
   };
@@ -84,8 +86,13 @@ function bucketNeverBlocked(rows, provenLive, verdicts) {
   };
 }
 
+// A control that CRASHED is inert, and none of the ambiguous buckets can judge it:
+// it never reached its own logic, so "never blocked" says nothing about whether it
+// bites. Quarantine it so it is reported as broken rather than as shelfware.
 function classify(stats, tier = null, provenLive = new Set(), verdicts = new Map()) {
   const rows = sensorIds(stats).map((id) => toRow(id, stats));
+  const erroredRows = rows.filter((r) => r.errored > 0);
+  const healthy = rows.filter((r) => r.errored === 0);
   const neverRanIds = rows.filter((r) => r.ran === 0).map((r) => r.id);
   // A gate registered only at a tier this repo does not run is dormant by design,
   // not dead — "check wiring or retire" would drop a live control that is simply not
@@ -93,9 +100,10 @@ function classify(stats, tier = null, provenLive = new Set(), verdicts = new Map
   // out only when the tier is known; synthetic callers pass none and stay tier-blind.
   const dormantByTier = tier ? neverRanIds.filter((id) => !isGateEnabled(tier, id)) : [];
   const dormant = new Set(dormantByTier);
-  const nb = bucketNeverBlocked(rows, provenLive, verdicts);
+  const nb = bucketNeverBlocked(healthy, provenLive, verdicts);
   return {
     rows,
+    errored: erroredRows.map((r) => `${r.id} (${r.errored})`),
     neverRan: neverRanIds.filter((id) => !dormant.has(id)),
     dormantByTier,
     removable: nb.removable,
@@ -140,6 +148,8 @@ function render(outcomes, minRuns, tier = null, provenLive = new Set(), verdicts
 
   const lines = [`sensor-value-report: ${totalRuns} recorded outcomes across ${c.rows.length} sensors` +
     (tier ? ` (active tier: ${tier}).` : '.')];
+  lines.push('', 'ERRORED (the control CRASHED and failed open — it is not running at all): ' +
+    (c.errored.join(', ') || 'none'));
   lines.push('', 'REMOVABLE (withhold-and-rerun showed no degradation — safe to cut): ' + (c.removable.join(', ') || 'none'));
   lines.push('CONFIRMED-VALUABLE (withheld → a real job degraded — keep): ' + (c.confirmedValuable.join(', ') || 'none'));
   lines.push('', 'NEVER FIRED (never ran — check wiring or retire): ' + (c.neverRan.join(', ') || 'none'));
