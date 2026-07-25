@@ -32,7 +32,10 @@ Copy from `docs/prompting-standards.md` — fail the edit if any box is open:
 - [ ] Long-running steps audit progress claims against **tool results**.
 - [ ] No "show/echo/transcribe your reasoning as text".
 - [ ] Distinct blocks in XML tags; examples where behavior is subtle.
-- [ ] Effort expectation noted for agentic/coding work (`high` / `xhigh`).
+- [ ] Effort expectation noted for agentic/coding work (open `high` / `xhigh`, then measure downward).
+- [ ] No instruction to **verify / re-check / double-check its own work** — that causes over-verification; structural verification (independent evaluator, deterministic gates) covers it.
+- [ ] Nothing restated that the **platform's base system prompt** already installs (response length, scope discipline, tone, faithful reporting).
+- [ ] Detail pushed to `references/*.md`; the always-loaded surface carries only **trigger + routing**.
 - [ ] **No model named in the prompt body**; no directional nudge that assumes one model's default (criterion, not nudge).
 
 ## Model pins
