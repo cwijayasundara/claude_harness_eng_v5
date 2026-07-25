@@ -9,7 +9,7 @@ const { test } = require('node:test');
 const SCRIPT = path.join(__dirname, '..', '.claude', 'scripts', 'model-tier.js');
 const { modelsForTier, sessionFor, applyTier, PRESETS } = require(SCRIPT);
 
-const OPUS = 'claude-opus-4-8';
+const OPUS = 'claude-opus-5';
 const SONNET5 = 'claude-sonnet-5';
 const HAIKU = 'claude-haiku-4-5';
 const NAMED_PRESETS = ['cost', 'balanced', 'max-quality', 'fusion'];
@@ -75,7 +75,7 @@ test('balanced: Sonnet generation + explorer, Opus judgment', () => {
   assert.notStrictEqual(m.generator, modelsForTier('max-quality').generator);
 });
 
-test('max-quality: Opus 4.8 generation; explorer stays Sonnet', () => {
+test('max-quality: Opus 5 generation; explorer stays Sonnet', () => {
   const m = modelsForTier('max-quality');
   assert.strictEqual(m.planner, OPUS);
   assert.strictEqual(m.generator, OPUS);
@@ -120,7 +120,7 @@ test('unknown preset throws', () => {
   assert.throws(() => modelsForTier('cheapest'), /unknown.*tier|preset/i);
 });
 
-test('session model guidance is Opus 4.8 in every tier', () => {
+test('session model guidance is Opus 5 in every tier', () => {
   assert.strictEqual(sessionFor('cost'), OPUS);
   assert.strictEqual(sessionFor('enterprise'), OPUS);
   assert.strictEqual(sessionFor('balanced'), OPUS);
@@ -140,7 +140,7 @@ test('applyTier rewrites each agent model: line to the exact id for the preset',
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agents-'));
   for (const role of ROLES) fakeAgent(dir, role, OPUS);
   const changed = applyTier(dir, 'balanced');
-  assert.match(fs.readFileSync(path.join(dir, 'planner.md'), 'utf8'), /^model: claude-opus-4-8$/m);
+  assert.match(fs.readFileSync(path.join(dir, 'planner.md'), 'utf8'), /^model: claude-opus-5$/m);
   assert.match(fs.readFileSync(path.join(dir, 'generator.md'), 'utf8'), /^model: claude-sonnet-5$/m);
   assert.ok(changed.includes('generator')); // OPUS -> Sonnet 5
   assert.ok(changed.includes('codebase-explorer')); // OPUS -> Sonnet 5
@@ -154,7 +154,7 @@ test('applyTier cost pins explorer to Haiku', () => {
   applyTier(dir, 'cost');
   assert.match(fs.readFileSync(path.join(dir, 'codebase-explorer.md'), 'utf8'), /^model: claude-haiku-4-5$/m);
   assert.match(fs.readFileSync(path.join(dir, 'generator.md'), 'utf8'), /^model: claude-sonnet-5$/m);
-  assert.match(fs.readFileSync(path.join(dir, 'advisor.md'), 'utf8'), /^model: claude-opus-4-8$/m);
+  assert.match(fs.readFileSync(path.join(dir, 'advisor.md'), 'utf8'), /^model: claude-opus-5$/m);
 });
 
 test('applyTier fusion stamps the implementer worker to Haiku and the generator lead to Sonnet', () => {
@@ -166,7 +166,7 @@ test('applyTier fusion stamps the implementer worker to Haiku and the generator 
   assert.match(fs.readFileSync(path.join(dir, 'implementer.md'), 'utf8'), /^model: claude-haiku-4-5$/m);
   assert.match(fs.readFileSync(path.join(dir, 'generator.md'), 'utf8'), /^model: claude-sonnet-5$/m);
   assert.match(fs.readFileSync(path.join(dir, 'codebase-explorer.md'), 'utf8'), /^model: claude-sonnet-5$/m);
-  assert.match(fs.readFileSync(path.join(dir, 'evaluator.md'), 'utf8'), /^model: claude-opus-4-8$/m);
+  assert.match(fs.readFileSync(path.join(dir, 'evaluator.md'), 'utf8'), /^model: claude-opus-5$/m);
   assert.ok(changed.includes('implementer')); // OPUS -> Haiku
 });
 
@@ -178,7 +178,7 @@ test('applyTier preserves the rest of the frontmatter and body', () => {
   assert.match(txt, /^name: planner$/m);
   assert.match(txt, /^description: test$/m);
   assert.match(txt, /Body\./);
-  assert.match(txt, /^model: claude-opus-4-8$/m);
+  assert.match(txt, /^model: claude-opus-5$/m);
 });
 
 // --- the repo's own agents must carry exact ids matching the default tier ------
@@ -197,5 +197,5 @@ test('repo agents are stamped with exact model ids (default dogfood tier = balan
   }
   // Advisor agent must exist and be Opus
   const adv = fs.readFileSync(path.join(dir, 'advisor.md'), 'utf8');
-  assert.match(adv, /^model: claude-opus-4-8$/m);
+  assert.match(adv, /^model: claude-opus-5$/m);
 });

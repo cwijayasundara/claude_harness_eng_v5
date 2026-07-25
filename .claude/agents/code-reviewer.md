@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: "Fresh-context review of a diff or changed-file set for both structure (SOLID breaks, duplication, god functions, hardcoded values, swallowed errors, speculative abstraction) and correctness (logic errors, missing edge cases, contract breaks). Reads only the diff and the files it touches, never the builder's conversation. Use at the pre-PR checkpoints: end of a story group/`/implement`, `/change`, `/refactor`, or `/vibe`, and always at `/gate`. Complements security-reviewer (vulnerabilities), which this agent does not cover."
-model: claude-opus-4-8
+model: claude-opus-5
 tools:
   - Read
   - Write

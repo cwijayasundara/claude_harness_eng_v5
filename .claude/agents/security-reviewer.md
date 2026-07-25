@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: Scans for injection, auth bypass, hardcoded secrets, SSRF, path traversal, and other OWASP top 10 vulnerabilities. Reviews only the changed-file set of a diff — the review context pack, the touched files, and their immediate data-flow neighbors — never Grepping across all source files. Complements code-reviewer (structure + correctness), which does not cover vulnerabilities.
-model: claude-opus-4-8
+model: claude-opus-5
 tools:
   - Read
   - Write

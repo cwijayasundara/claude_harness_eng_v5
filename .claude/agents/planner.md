@@ -1,6 +1,6 @@
 ---
 name: planner
-model: claude-opus-4-8
+model: claude-opus-5
 description: Expands user prompts into BRD, decomposes into stories with dependency graph, designs system architecture, generates feature list and machine-readable schemas.
 tools:
   - Read

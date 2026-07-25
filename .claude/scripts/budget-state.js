@@ -26,18 +26,18 @@ const RATE_USD = Object.freeze({
 
 // Approximate USD per token [input, output] when a receipt carries real counts.
 // Cache read ≈ 10% of input rate; cache creation ≈ full input rate (Anthropic).
-// claude-opus-4-7 and claude-sonnet-4-6 are retired model pins (superseded by
-// claude-opus-4-8 and claude-sonnet-5) — kept here so historical receipts
-// still price correctly, not because agents emit them anymore.
-// claude-fable-5 is reserved for a future advisor pin if product re-enables it.
+// The whole Opus tier (5, 4.8, 4.7) is $5/$25 per MTok; Sonnet 5 is listed at
+// its $3/$15 sticker, not the lower intro rate. Retired pins (opus-4-8/4-7,
+// sonnet-4-6) stay so historical receipts price correctly; fable-5 is reserved.
 const MODEL_PRICE = Object.freeze({
-  'claude-opus-4-8': [15e-6, 75e-6],
-  'claude-opus-4-7': [15e-6, 75e-6],
+  'claude-opus-5': [5e-6, 25e-6],
+  'claude-opus-4-8': [5e-6, 25e-6],
+  'claude-opus-4-7': [5e-6, 25e-6],
   'claude-sonnet-5': [3e-6, 15e-6],
   'claude-sonnet-4-6': [3e-6, 15e-6],
   'claude-haiku-4-5': [1e-6, 5e-6],
-  'claude-fable-5': [15e-6, 75e-6],
-  default: [15e-6, 75e-6],
+  'claude-fable-5': [10e-6, 50e-6],
+  default: [5e-6, 25e-6],
 });
 
 const CACHE_READ_FRACTION = 0.1;

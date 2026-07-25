@@ -1,6 +1,6 @@
 ---
 name: evaluator
-model: claude-opus-4-8
+model: claude-opus-5
 description: Skeptical verifier. Runtime mode runs the app and checks sprint-contract criteria (API + Playwright + schema). Artifact mode scores planning documents (BRD, spec, design, brownfield, seam-finder, deploy) against a rubric. Never generates — only evaluates.
 tools:
   - Read

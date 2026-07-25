@@ -82,15 +82,15 @@ Roles are assigned by **capability tier**, not a specific model — no prompt in
 | Implementer (team worker) | cost-efficient; **cheap** on `fusion` | Per-story mechanical implementation — spawned as `subagent_type: implementer` |
 | Security reviewer | top-capability | Contextual vuln reasoning + adversarial find-then-refute |
 
-- **top-capability** = Opus 4.8.
+- **top-capability** = Opus 5.
 - **cost-efficient** = Sonnet 5.
 - **cheap** = Haiku 4.5 (worker tier — only on the `fusion` preset, where the worker is cheaper than its lead).
 
-The orchestrator runs on the **session model** (whatever `/model` is set to — Opus 4.8). Subagent models are pinned per agent in `.claude/agents/<name>.md` frontmatter (`model:`), stamped from the cost-posture preset in `project-manifest.json` → `execution.model_tier` (default `balanced`):
+The orchestrator runs on the **session model** (whatever `/model` is set to — Opus 5). Subagent models are pinned per agent in `.claude/agents/<name>.md` frontmatter (`model:`), stamped from the cost-posture preset in `project-manifest.json` → `execution.model_tier` (default `balanced`):
 
 - **cost** — Sonnet generation, Opus judgment.
-- **balanced** (default) — identical pins to `cost` today (top tier is a single model, Opus 4.8); kept as a distinct posture name for per-project re-tuning.
-- **max-quality** — generation bumped to Opus 4.8; everything else already Opus, codebase-explorer stays Sonnet.
+- **balanced** (default) — identical pins to `cost` today (top tier is a single model, Opus 5); kept as a distinct posture name for per-project re-tuning.
+- **max-quality** — generation bumped to Opus 5; everything else already Opus, codebase-explorer stays Sonnet.
 - **fusion** — cheap worker under a smart lead: generator lead stays Sonnet 5, the `implementer` team worker drops to Haiku 4.5 (the only preset where the worker is cheaper than the lead), judgment Opus. On every other preset the implementer pins to the same model as the generator, so the role changes no behavior unless `fusion` is selected.
 
 Re-stamp after editing the manifest: `node .claude/scripts/model-tier.js <preset> --apply .claude/agents`. Full rationale + decision rule: `docs/model-allocation.md`.

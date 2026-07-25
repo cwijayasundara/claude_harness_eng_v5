@@ -1,6 +1,6 @@
 ---
 name: design-critic
-model: claude-opus-4-8
+model: claude-opus-5
 description: GAN counterpart for frontend quality. Takes screenshots and scores against 4 criteria (design quality, originality, craft, functionality).
 tools:
   - Read

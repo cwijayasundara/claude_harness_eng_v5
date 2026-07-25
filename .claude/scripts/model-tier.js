@@ -6,12 +6,12 @@
 //
 // The harness runs a GAN: generation is the high-volume output bucket, judgment
 // is lower-volume but quality-sensitive. Judgment (evaluator + reviewers +
-// planner + advisor) is pinned to Opus 4.8 across every posture.
+// planner + advisor) is pinned to Opus 5 across every posture.
 //
 //   cost / enterprise — Sonnet 5 generation, Haiku exploration, Opus judgment.
 //                       Enterprise product default (Coinbase: defaults > caps).
 //   balanced          — Sonnet 5 generation + exploration, Opus judgment.
-//   max-quality       — Opus 4.8 generation; explorer stays Sonnet 5.
+//   max-quality       — Opus 5 generation; explorer stays Sonnet 5.
 //   fusion            — "cheap worker under a smart lead": Sonnet 5 lead
 //                       (generator), Haiku 4.5 worker (implementer), Sonnet 5
 //                       exploration, Opus judgment. Only preset where the
@@ -30,7 +30,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Exact model IDs (not bare aliases) — version-pinned and unambiguous.
-const OPUS = 'claude-opus-4-8';     // judgment: evaluator + reviewers + planner + advisor
+const OPUS = 'claude-opus-5';       // judgment: evaluator + reviewers + planner + advisor
 const SONNET5 = 'claude-sonnet-5';  // generation (cost/balanced) + exploration (balanced+)
 const HAIKU = 'claude-haiku-4-5';   // cheap exploration on enterprise/cost
 

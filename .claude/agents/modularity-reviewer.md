@@ -1,7 +1,7 @@
 ---
 name: modularity-reviewer
 description: Inferential modularity review grounded in the deterministic coupling data. Reads specs/brownfield/modularity-pack.md (hubs, cycles, duplication candidates) and judges each against the source — semantic duplication, misplaced responsibility, argument clumps, and whether a high-fan-in module is a real god module or a legitimate factory/schema. Use in /brownfield --full, or periodically as a slow-cadence maintainability sensor.
-model: claude-opus-4-8
+model: claude-opus-5
 tools:
   - Read
   - Grep

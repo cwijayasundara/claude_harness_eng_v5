@@ -315,14 +315,14 @@ Cost figures are surfaced estimates (Σ per-spawn receipts × tier rate), not bi
 
 ## Cost per outcome (model tiers & the `fusion` preset)
 
-Model choice is a **measured** decision, not a vibe: a per-token-cheaper worker can be *dearer per shipped story* if it needs more evaluator/self-heal cycles. Model-tier presets (`node .claude/scripts/model-tier.js <preset>`) pin one model per agent role — generation is high-volume, judgment (evaluator + reviewers + planner) stays on Opus 4.8 across every posture:
+Model choice is a **measured** decision, not a vibe: a per-token-cheaper worker can be *dearer per shipped story* if it needs more evaluator/self-heal cycles. Model-tier presets (`node .claude/scripts/model-tier.js <preset>`) pin one model per agent role — generation is high-volume, judgment (evaluator + reviewers + planner) stays on Opus 5 across every posture:
 
 | Preset | Generator (lead) | `implementer` (worker) | Explorer | Judgment |
 |---|---|---|---|---|
-| `cost` / `enterprise` | Sonnet 5 | Sonnet 5 | Haiku 4.5 | Opus 4.8 |
-| `balanced` (default) | Sonnet 5 | Sonnet 5 | Sonnet 5 | Opus 4.8 |
-| `max-quality` | Opus 4.8 | Opus 4.8 | Sonnet 5 | Opus 4.8 |
-| **`fusion`** | Sonnet 5 | **Haiku 4.5** | Sonnet 5 | Opus 4.8 |
+| `cost` / `enterprise` | Sonnet 5 | Sonnet 5 | Haiku 4.5 | Opus 5 |
+| `balanced` (default) | Sonnet 5 | Sonnet 5 | Sonnet 5 | Opus 5 |
+| `max-quality` | Opus 5 | Opus 5 | Sonnet 5 | Opus 5 |
+| **`fusion`** | Sonnet 5 | **Haiku 4.5** | Sonnet 5 | Opus 5 |
 
 `fusion` is the only preset where the per-story **worker is cheaper than the lead** ("cheap worker under a smart lead"). The lead keeps judgment on Opus while the per-story worker runs on Haiku.
 
